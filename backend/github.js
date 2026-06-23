@@ -4,14 +4,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const GITHUB_API_URL = 'https://api.github.com';
-const headers = {
-  Authorization: `Bearer ${process.env.GITHUB_API_TOKEN}`,
-  Accept: 'application/vnd.github.v3+json',
+const getHeaders = () => {
+  const headers = {
+    Accept: 'application/vnd.github.v3+json',
+  };
+  if (process.env.GITHUB_API_TOKEN && process.env.GITHUB_API_TOKEN.trim() !== '' && !process.env.GITHUB_API_TOKEN.startsWith('your_github_token')) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_API_TOKEN}`;
+  }
+  return headers;
 };
 
 export async function getUserProfile(username) {
   try {
-    const response = await axios.get(`${GITHUB_API_URL}/users/${username}`, { headers });
+    const response = await axios.get(`${GITHUB_API_URL}/users/${username}`, { headers: getHeaders() });
     return response.data;
   } catch (error) {
     if (error.response?.status === 404) {
@@ -27,7 +32,7 @@ export async function getUserProfile(username) {
 export async function getUserRepositories(username) {
   try {
     const response = await axios.get(`${GITHUB_API_URL}/users/${username}/repos`, {
-      headers,
+      headers: getHeaders(),
       params: {
         per_page: 100,
         sort: 'updated',
